@@ -1,5 +1,5 @@
 ## 리액트 빌드
-FROM node:slim as builder
+FROM node as builder
 
 WORKDIR /usr/src/app
 ENV PATH /usr/src/app/node_modules/.bin:$PATH
