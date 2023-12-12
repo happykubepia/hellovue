@@ -16,7 +16,7 @@ FROM nginx:latest
 COPY --from=builder /usr/src/app/build /usr/share/nginx/html
 #
 ## default.conf 복사: project root directory에 미리 default.conf.template파일 있어야 함
-COPY ./default.conf.template /etc/nginx/conf.d/default.conf
+COPY ./deployment/default.conf.template /etc/nginx/conf.d/default.conf
 #
 ## 80포트 오픈하고 nginx 실행
 EXPOSE 80
