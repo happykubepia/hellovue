@@ -1,15 +1,20 @@
 ## 리액트 빌드
 FROM node:alpine as builder
 
-WORKDIR /usr/src/app
-ENV PATH /usr/src/app/node_modules/.bin:$PATH
+WORKDIR /app
 
-COPY ./package.json .
-COPY ./vite.config.js .
-RUN npm install --production
-COPY . .
-RUN npm run build
-#RUN yarn install && yarn build
+# install app dependencies
+COPY package.json ./
+COPY package-lock.json ./
+
+# Fix permissions for packages
+# RUN npm config set unsafe-perm true
+RUN npm install && npm install -g serve
+
+# Bundle app source
+COPY . ./
+
+RUN chown -R node:node /app/node_modules && npm run build
 
 ##
 ## 리액트 빌드 결과를 nginx에 배포한다.
