@@ -4,16 +4,12 @@ WORKDIR /app
 COPY . ./
 RUN npm install && npm run build 
 
-##
 ## 빌드 결과를 nginx에 배포한다.
-##
 FROM nginx:latest
-#
+
 ## 위에서 생성한 앱의 빌드 산출물을 nginx의 샘플 앱이 사용하던 폴더로 복사
-#RUN rm -rf /usr/share/nginx/html/*
 COPY --from=builder /app/dist /usr/share/nginx/html
-#
-#RUN rm -rf /etc/nginx/conf.d/default.conf
+## Copy web configuration 
 COPY --from=builder /app/deployment/default.conf.template /etc/nginx/conf.d/default.conf
 #
 ## 80포트 오픈하고 nginx 실행
