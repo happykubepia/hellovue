@@ -1,5 +1,5 @@
 
-def label = "mybatis-sample-u00-${env.BUILD_NUMBER}"
+def label = "hellovue-u00-${env.BUILD_NUMBER}"
 
 /* -------- functions ---------- */
 def notifySlack(STATUS, COLOR) {
@@ -13,19 +13,20 @@ podTemplate(
 	containers: [
 		containerTemplate(name: "trivy", image: "aquasec/trivy", ttyEnabled: true, command: "cat"),
 		containerTemplate(name: "kubectl", image: "lachlanevenson/k8s-kubectl", command: "cat", ttyEnabled: true),
-		containerTemplate(name: "maven", image: "maven:3.8.5-openjdk-17", ttyEnabled: true, command: "cat"),
 		containerTemplate(name: 'podman', image: 'mgoltzsche/podman', ttyEnabled: true, command: 'cat', privileged: true)
 	],
 	//volume mount
+    /*
     volumes: [
     	nfsVolume( mountPath: '/root/.m2', serverAddress: '10.193.24.247', serverPath: '/data/maven', readOnly: false ),
     ]
+    */
 ) 
 
 {
 	node(label) {
 		stage("Get Source") {
-			git branch: 'main', url: 'https://github.com/happykubepia/mybatis-sample.git'
+			git branch: 'main', url: 'https://github.com/happykubepia/hellovue.git'
         } 
 
 		//-- Read pipeline.properties and setting variables
@@ -42,13 +43,6 @@ podTemplate(
 		selector_val=props["selector_val"]
 
 		try {
-			stage("Build Jar") {
-				container("maven") {
-					sh 'echo "Build jar under target directory"'
-					sh "mvn clean package -DskipTests"
-				}
-			}
-
 			stage("Build Container image") {
 				container("podman") {
 					withCredentials([usernamePassword(
