@@ -26,7 +26,7 @@ RUN rm -rf /usr/share/nginx/html/*
 COPY --from=builder /app/dist /usr/share/nginx/html
 #
 ## default.conf 복사: project root directory에 미리 default.conf.template파일 있어야 함
-RUN /etc/nginx/conf.d/default.conf
+RUN rm -rf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/deployment/default.conf.template /etc/nginx/conf.d/default.conf
 #
 ## 80포트 오픈하고 nginx 실행
