@@ -5,7 +5,8 @@ WORKDIR /usr/src/app
 ENV PATH /usr/src/app/node_modules/.bin:$PATH
 COPY . .
 
-RUN npm run build
+#RUN npm run build
+RUN yarn install&& yarn build
 
 ##
 ## 리액트 빌드 결과를 nginx에 배포한다.
