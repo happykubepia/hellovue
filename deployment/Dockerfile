@@ -3,7 +3,7 @@ FROM node:alpine as builder
 
 WORKDIR /usr/src/app
 ENV PATH /usr/src/app/node_modules/.bin:$PATH
-COPY . /usr/src/app
+COPY . .
 
 RUN npm run build
 
