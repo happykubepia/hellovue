@@ -15,12 +15,7 @@ podTemplate(
 		containerTemplate(name: "kubectl", image: "lachlanevenson/k8s-kubectl", command: "cat", ttyEnabled: true),
 		containerTemplate(name: 'podman', image: 'mgoltzsche/podman', ttyEnabled: true, command: 'cat', privileged: true)
 	],
-	//volume mount
-    /*
-    volumes: [
-    	nfsVolume( mountPath: '/root/.m2', serverAddress: '10.193.24.247', serverPath: '/data/maven', readOnly: false ),
-    ]
-    */
+
 ) 
 
 {
