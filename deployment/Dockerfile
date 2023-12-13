@@ -22,9 +22,11 @@ RUN chown -R node:node /app/node_modules && npm run build
 FROM nginx:latest
 #
 ## 위에서 생성한 앱의 빌드 산출물을 nginx의 샘플 앱이 사용하던 폴더로 복사
+RUN rm -rf /usr/share/nginx/html/*
 COPY --from=builder /app/dist /usr/share/nginx/html
 #
 ## default.conf 복사: project root directory에 미리 default.conf.template파일 있어야 함
+RUN /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/default.conf.template /etc/nginx/conf.d/default.conf
 #
 ## 80포트 오픈하고 nginx 실행
