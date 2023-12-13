@@ -19,9 +19,6 @@ spec:
         - name: hellovue
           image: docker.io/hiondal/hellovue:latest
           imagePullPolicy: Always
-          env:
-            - name: PORT
-              value: "8080"
           ports:
             - name: port1
               containerPort: 8081
@@ -46,7 +43,7 @@ spec:
   ports:
     - name: hellovue
       port: 8080
-      targetPort: 8080
+      targetPort: 80
 
 ---
 
