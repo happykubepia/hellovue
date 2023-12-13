@@ -4,17 +4,18 @@ FROM node:alpine as builder
 WORKDIR /app
 
 # install app dependencies
-COPY package.json ./
-COPY package-lock.json ./
+#COPY package.json ./
+#COPY package-lock.json ./
 
 # Fix permissions for packages
 # RUN npm config set unsafe-perm true
-RUN npm install && npm install -g serve
+#RUN npm install && npm install -g serve
 
 # Bundle app source
 COPY . ./
-
-RUN chown -R node:node /app/node_modules && npm run build
+RUN npm install 
+RUN npm run build 
+#RUN chown -R node:node /app/node_modules && npm run build
 
 ##
 ## 리액트 빌드 결과를 nginx에 배포한다.
