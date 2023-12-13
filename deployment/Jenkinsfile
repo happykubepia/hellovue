@@ -1,0 +1,101 @@
+
+def label = "mybatis-sample-u00-${env.BUILD_NUMBER}"
+
+/* -------- functions ---------- */
+def notifySlack(STATUS, COLOR) {
+	slackSend (channel: '#cicd', color: COLOR, message: STATUS+" : " +  "${env.JOB_NAME} [${env.BUILD_NUMBER}] (${env.BUILD_URL})")
+}
+
+notifySlack("STARTED", "#FFFF00")
+
+podTemplate(
+	label: label, 
+	containers: [
+		containerTemplate(name: "trivy", image: "aquasec/trivy", ttyEnabled: true, command: "cat"),
+		containerTemplate(name: "kubectl", image: "lachlanevenson/k8s-kubectl", command: "cat", ttyEnabled: true),
+		containerTemplate(name: "maven", image: "maven:3.8.5-openjdk-17", ttyEnabled: true, command: "cat"),
+		containerTemplate(name: 'podman', image: 'mgoltzsche/podman', ttyEnabled: true, command: 'cat', privileged: true)
+	],
+	//volume mount
+    volumes: [
+    	nfsVolume( mountPath: '/root/.m2', serverAddress: '10.193.24.247', serverPath: '/data/maven', readOnly: false ),
+    ]
+) 
+
+{
+	node(label) {
+		stage("Get Source") {
+			git branch: 'main', url: 'https://github.com/happykubepia/mybatis-sample.git'
+        } 
+
+		//-- Read pipeline.properties and setting variables
+		def props = readProperties  file:"deployment/pipeline.properties"
+		
+		credentialRegistry=props["credentialRegistry"]
+		registry=props["registry"]
+		organization=props["organization"]
+		repository=props["repository"]
+		tag=props["tag"]
+		namespace=props["namespace"]
+		manifest=props["manifest"]
+		selector_key=props["selector_key"]
+		selector_val=props["selector_val"]
+
+		try {
+			stage("Build Jar") {
+				container("maven") {
+					sh 'echo "Build jar under target directory"'
+					sh "mvn clean package -DskipTests"
+				}
+			}
+
+			stage("Build Container image") {
+				container("podman") {
+					withCredentials([usernamePassword(
+						credentialsId: "${credentialRegistry}",
+						usernameVariable: 'USER',
+						passwordVariable: 'PASSWORD'
+						)]) {
+						    sh 'echo user "$USER" pasword "$PASSWORD"'
+						    sh "podman login ${registry} --username ${USER} --password ${PASSWORD}"
+							sh "podman build -f ./deployment/Dockerfile -t ${registry}/${organization}/${repository}:${tag} --build-arg ARTIFACTORY_FILE=${repository}.jar ."
+							sh "sleep 2"
+							sh "podman push ${registry}/${organization}/${repository}:${tag}"
+							sh "podman tag ${registry}/${organization}/${repository}:${tag} ${registry}/${organization}/${repository}:latest"
+							sh "podman push ${registry}/${organization}/${repository}:latest"
+					}
+				}
+			}
+
+			stage("Scan Image Vulnerability") {
+				container("trivy"){
+					sh "trivy image ${registry}/${organization}/${repository}:${tag}"	
+				}
+			}
+
+			try {
+				stage( "Clean Up Existing Deployments" ) {
+					container("kubectl") {
+						sh "kubectl delete deploy -n ${namespace} --selector=${selector_key}=${selector_val}"
+					}
+				}
+			} catch(e) { 
+				echo "No existed Deployments"
+			}
+
+			stage( "Deploy to Cluster" ) {
+				container("kubectl") {
+					sh "kubectl apply -f ${manifest} -n ${namespace}"
+					sh "sleep 5"
+				}
+			}
+
+	        notifySlack("${currentBuild.currentResult}", "#00FF00")
+			echo "**** FINISH ALL STAGES : SUCCESS"
+		
+		} catch(e) {
+			currentBuild.result = "FAILED"
+            notifySlack("${currentBuild.currentResult}", "#FF0000")            
+		}
+	}
+}
