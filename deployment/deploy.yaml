@@ -57,7 +57,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: hellovue-ibm.165.192.105.60.nip.io
+    - host: hellovue-hiondal.165.192.105.60.nip.io
       http:
         paths:
           - path: /(.*)
