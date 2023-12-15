@@ -1,5 +1,5 @@
 
-def label = "hellovue-u00-${env.BUILD_NUMBER}"
+def label = "hellovue-hiondal-${env.BUILD_NUMBER}"
 
 /* -------- functions ---------- */
 def notifySlack(STATUS, COLOR) {
